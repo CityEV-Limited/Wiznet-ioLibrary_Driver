@@ -560,6 +560,7 @@ int32_t sendto(uint8_t sn, uint8_t * buf, uint16_t len, uint8_t * addr, uint16_t
 	setSn_CR(sn,Sn_CR_SEND);
 	/* wait to process the command... */
 	while(getSn_CR(sn));
+#ifdef _W55XX_ORIGINAL_
    while(1)
    {
       tmp = getSn_IR(sn);
@@ -583,6 +584,7 @@ int32_t sendto(uint8_t sn, uint8_t * buf, uint16_t len, uint8_t * addr, uint16_t
       }
       ////////////
    }
+#endif
    #if _WIZCHIP_ < 5500   //M20150401 : for WIZCHIP Errata #4, #5 (ARP errata)
       if(taddr) setSUBR((uint8_t*)&taddr);
    #endif
