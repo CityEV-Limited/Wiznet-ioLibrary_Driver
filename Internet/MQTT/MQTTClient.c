@@ -25,8 +25,11 @@ static int getNextPacketId(MQTTClient *c) {
     return c->next_packetid = (c->next_packetid == MAX_PACKET_ID) ? 1 : c->next_packetid + 1;
 }
 
-
+#ifdef _W55XX_ORIGINAL_
 static int sendPacket(MQTTClient* c, int length, Timer* timer)
+#else
+int sendPacket(MQTTClient* c, int length, Timer* timer)
+#endif
 {
     int rc = FAILURE,
         sent = 0;
@@ -374,6 +377,7 @@ int MQTTConnect(MQTTClient* c, MQTTPacket_connectData* options)
     if ((rc = sendPacket(c, len, &connect_timer)) != SUCCESSS)  // send the connect packet
         goto exit; // there was a problem
 
+#ifdef _W55XX_ORIGINAL_
     // this will be a blocking call, wait for the connack
     if (waitfor(c, CONNACK, &connect_timer) == CONNACK)
     {
@@ -386,6 +390,7 @@ int MQTTConnect(MQTTClient* c, MQTTPacket_connectData* options)
     }
     else
         rc = FAILURE;
+#endif
 
 exit:
     if (rc == SUCCESSS)
@@ -425,6 +430,7 @@ int MQTTSubscribe(MQTTClient* c, const char* topicFilter, enum QoS qos, messageH
     if ((rc = sendPacket(c, len, &timer)) != SUCCESSS) // send the subscribe packet
         goto exit;             // there was a problem
 
+#ifdef _W55XX_ORIGINAL_
     if (waitfor(c, SUBACK, &timer) == SUBACK)      // wait for suback
     {
         int count = 0, grantedQoS = -1;
@@ -448,6 +454,7 @@ int MQTTSubscribe(MQTTClient* c, const char* topicFilter, enum QoS qos, messageH
     }
     else
         rc = FAILURE;
+#endif
 
 exit:
 #if defined(MQTT_TASK)
@@ -479,6 +486,7 @@ int MQTTUnsubscribe(MQTTClient* c, const char* topicFilter)
     if ((rc = sendPacket(c, len, &timer)) != SUCCESSS) // send the subscribe packet
         goto exit; // there was a problem
 
+#ifdef _W55XX_ORIGINAL_
     if (waitfor(c, UNSUBACK, &timer) == UNSUBACK)
     {
         unsigned short mypacketid;  // should be the same as the packetid above
@@ -487,6 +495,7 @@ int MQTTUnsubscribe(MQTTClient* c, const char* topicFilter)
     }
     else
         rc = FAILURE;
+#endif
 
 exit:
 #if defined(MQTT_TASK)
@@ -523,6 +532,7 @@ int MQTTPublish(MQTTClient* c, const char* topicName, MQTTMessage* message)
     if ((rc = sendPacket(c, len, &timer)) != SUCCESSS) // send the subscribe packet
         goto exit; // there was a problem
 
+#ifdef _W55XX_ORIGINAL_
     if (message->qos == QOS1)
     {
         if (waitfor(c, PUBACK, &timer) == PUBACK)
@@ -547,6 +557,7 @@ int MQTTPublish(MQTTClient* c, const char* topicName, MQTTMessage* message)
         else
             rc = FAILURE;
     }
+#endif
 
 exit:
 #if defined(MQTT_TASK)
