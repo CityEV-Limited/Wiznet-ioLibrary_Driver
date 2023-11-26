@@ -173,12 +173,32 @@ int8_t socket(uint8_t sn, uint8_t protocol, uint16_t port, uint8_t flag)
     #else
 	   setSn_MR(sn, (protocol | (flag & 0xF0)));
     #endif
+#ifdef _W55XX_ORIGINAL_
 	if(!port)
 	{
 	   port = sock_any_port++;
 	   if(sock_any_port == 0xFFF0) sock_any_port = SOCK_ANY_PORT_NUM;
 	}
    setSn_PORT(sn,port);
+#else
+	if(protocol == Sn_MR_IPRAW)
+    {
+	  setSn_PROTO(sn, port & 0xFF);
+	  sock_any_port++;
+      if(sock_any_port == 0xFFF0) sock_any_port = SOCK_ANY_PORT_NUM;
+	  setSn_PORT(sn,sock_any_port);
+    }
+    else
+    {
+      if(!port)
+      {
+        port = sock_any_port++;
+        if(sock_any_port == 0xFFF0) sock_any_port = SOCK_ANY_PORT_NUM;
+	  };
+      setSn_PORT(sn,port);
+    };
+#endif
+
    setSn_CR(sn,Sn_CR_OPEN);
    while(getSn_CR(sn));
    //A20150401 : For release the previous sock_io_mode
