@@ -543,8 +543,15 @@ extern "C" {
  */
 #define Sn_MSSR(N)         (_W5500_IO_BASE_ + (0x0012 << 8) + (WIZCHIP_SREG_BLOCK(N) << 3))
 
-// Reserved			         (_W5500_IO_BASE_ + (0x0014 << 8) + (WIZCHIP_SREG_BLOCK(N) << 3))
-
+#ifndef _W55XX_ORIGINAL_
+/**
+ * @ingroup Socket_register_group_W5200
+ * @brief IP Protocol(PROTO) Register(R/W)
+ * @details \ref Sn_PROTO that sets the protocol number field of the IP header at the IP layer. It is
+ * valid only in IPRAW mode, and ignored in other modes.
+ */
+#define Sn_PROTO(N)	   (_W5500_IO_BASE_ + (0x0014 << 8) + (WIZCHIP_SREG_BLOCK(N) << 3)) // Protocol of IP Header field register in IP raw mode
+#endif
 /**
  * @ingroup Socket_register_group
  * @brief IP Type of Service(TOS) Register(R/W)
@@ -1847,6 +1854,28 @@ void     WIZCHIP_WRITE_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len);
 */
 #define getSn_MSSR(sn) \
 		(((uint16_t)WIZCHIP_READ(Sn_MSSR(sn)) << 8) + WIZCHIP_READ(WIZCHIP_OFFSET_INC(Sn_MSSR(sn),1)))		
+
+#ifndef _W55XX_ORIGINAL_
+/**
+ * @ingroup Socket_register_access_function_W5200
+ * @brief Set @ref Sn_PROTO register
+ * @param (uint8_t)sn Socket number. It should be <b>0 ~ @ref \_WIZCHIP_SOCK_NUM_</b>.
+ * @param (uint8_t)proto Value to set \ref Sn_PROTO
+ * @sa getSn_PROTO()
+ */
+#define setSn_PROTO(sn, proto) \
+		WIZCHIP_WRITE(Sn_PROTO(sn), proto)
+
+/**
+ * @ingroup Socket_register_access_function_W5200
+ * @brief Get @ref Sn_PROTO register
+ * @param (uint8_t)sn Socket number. It should be <b>0 ~ @ref \_WIZCHIP_SOCK_NUM_</b>.
+ * @return uint8_t. Value of @ref Sn_PROTO.
+ * @sa setSn_PROTO()
+ */
+#define getSn_PROTO(sn) \
+		WIZCHIP_READ(Sn_PROTO(sn))
+#endif
 
 /**
  * @ingroup Socket_register_access_function
