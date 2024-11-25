@@ -614,7 +614,7 @@ int32_t sendto(uint8_t sn, uint8_t * buf, uint16_t len, uint8_t * addr, uint16_t
 }
 
 
-
+#ifdef _W55XX_ORIGINAL_
 int32_t recvfrom(uint8_t sn, uint8_t * buf, uint16_t len, uint8_t * addr, uint16_t *port)
 {
 //M20150601 : For W5300
@@ -795,7 +795,52 @@ int32_t recvfrom(uint8_t sn, uint8_t * buf, uint16_t len, uint8_t * addr, uint16
    //return pack_len;
    return (int32_t)pack_len;
 }
+#else
+int32_t recvfrom(uint8_t sn, uint8_t * buf, uint16_t len, uint8_t * addr, uint16_t *port)
+{
+	uint16_t pack_len = len;
 
+	uint8_t mr = getSn_MR(sn);
+
+	switch (mr & 0x07)
+	{
+	case Sn_MR_UDP:
+		if(sock_remained_size[sn] == 0)
+		{
+			uint8_t  head[8];
+
+			wiz_recv_data(sn, head, 8);
+			setSn_CR(sn,Sn_CR_RECV);
+			while(getSn_CR(sn));
+
+			// read peer's IP address, port number & packet length
+			addr[0] = head[0];
+			addr[1] = head[1];
+			addr[2] = head[2];
+			addr[3] = head[3];
+			*port = head[4];
+			*port = (*port << 8) + head[5];
+			pack_len = head[6];
+			pack_len = (pack_len << 8) + head[7];
+		};
+
+		if(len < pack_len)
+			pack_len = len;
+
+	case Sn_MR_MACRAW:
+		break;
+
+	default:
+		return SOCKERR_SOCKMODE;
+	};
+
+	wiz_recv_data(sn, buf, pack_len);
+	setSn_CR(sn,Sn_CR_RECV);
+	while(getSn_CR(sn));
+
+   return (int32_t)pack_len;
+}
+#endif
 
 int8_t  ctlsocket(uint8_t sn, ctlsock_type cstype, void* arg)
 {
